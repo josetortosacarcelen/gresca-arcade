@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Gresca Arcade</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="top">
+        <div class="logo" id="logo" role="button" tabindex="0" title="Menú principal">
+          GRESCA<small>Arcade de barrio · luchadores con tu cara</small>
+        </div>
+        <div class="top-actions">
+          <button id="gfxBtn" class="ghost">Gráficos: píxel</button>
+          <button id="soundBtn" class="ghost" aria-pressed="true">Sonido: sí</button>
+        </div>
+      </header>
+
+      <!-- HOME -->
+      <section id="scr-home" class="screen">
+        <div class="cab">
+          <canvas id="demo" width="960" height="540"></canvas>
+          <div class="scan"></div>
+        </div>
+        <div class="menu-grid">
+          <button class="hero" id="goArcade"><b>Modo arcade</b><span>Tumba a todos, uno tras otro</span></button>
+          <button id="goCpu"><b>Combate libre</b><span>Tú contra la CPU</span></button>
+          <button id="goLocal"><b>2 jugadores</b><span>Mismo teclado o dos mandos</span></button>
+          <button id="goOnline"><b>Online</b><span>Sala privada con tus amigos</span></button>
+          <button id="goRoster"><b>Luchadores</b><span>Crea uno con tu cara</span></button>
+        </div>
+        <div class="panel keys">
+          <div>
+            <h3>Jugador 1</h3>
+            <table>
+              <tr>
+                <td>Moverse / saltar / agacharse</td>
+                <td><kbd>A</kbd><kbd>D</kbd><kbd>W</kbd><kbd>S</kbd></td>
+              </tr>
+              <tr>
+                <td>Puño · Patada · Especial</td>
+                <td><kbd>F</kbd><kbd>G</kbd><kbd>H</kbd></td>
+              </tr>
+              <tr>
+                <td>En 1 jugador también</td>
+                <td><kbd>←↑↓→</kbd> <kbd>K</kbd><kbd>L</kbd><kbd>Ñ</kbd></td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h3>Jugador 2</h3>
+            <table>
+              <tr>
+                <td>Moverse / saltar / agacharse</td>
+                <td><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></td>
+              </tr>
+              <tr>
+                <td>Puño · Patada · Especial</td>
+                <td><kbd>K</kbd><kbd>L</kbd><kbd>Ñ</kbd></td>
+              </tr>
+              <tr>
+                <td>Mandos</td>
+                <td>X puño · A patada · B especial</td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h3>Movimientos</h3>
+            <table>
+              <tr>
+                <td>Bola de energía</td>
+                <td>Especial</td>
+              </tr>
+              <tr>
+                <td>Gancho volador (antiaéreo)</td>
+                <td>Abajo + Especial</td>
+              </tr>
+              <tr>
+                <td>Súper (barra llena)</td>
+                <td>Especial</td>
+              </tr>
+              <tr>
+                <td>Bloquear</td>
+                <td>Mantén hacia atrás</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SELECT -->
+      <section id="scr-select" class="screen" hidden>
+        <div class="row">
+          <h2 id="selTitle">Elige luchadores</h2>
+          <span class="spacer"></span><button class="ghost" data-go="home">Volver</button>
+        </div>
+        <div class="vs">
+          <button class="slot active" id="slot1">
+            <canvas width="128" height="128"></canvas>
+            <div>
+              <div class="who">Jugador 1</div>
+              <div class="nm">—</div>
+              <div class="ttl"></div>
+            </div>
+          </button>
+          <div class="x" id="vsX">VS</div>
+          <button class="slot right" id="slot2">
+            <canvas width="128" height="128"></canvas>
+            <div>
+              <div class="who" id="slot2who">CPU</div>
+              <div class="nm">—</div>
+              <div class="ttl"></div>
+            </div>
+          </button>
+        </div>
+        <div class="cards" id="selCards"></div>
+        <div class="row">
+          <label class="fld" id="diffWrap"
+            >Dificultad CPU
+            <select id="diff">
+              <option value="0">Fácil</option>
+              <option value="1" selected>Normal</option>
+              <option value="2">Difícil</option>
+            </select></label
+          >
+          <span class="spacer"></span>
+          <button id="randBtn">Aleatorio</button>
+          <button class="primary" id="fightBtn">¡A pelear!</button>
+        </div>
+      </section>
+
+      <!-- FIGHT -->
+      <section id="scr-fight" class="screen" hidden>
+        <div class="cab">
+          <canvas id="game" width="960" height="540"></canvas>
+          <div class="scan"></div>
+          <div class="overlay" id="endBtns" hidden></div>
+        </div>
+        <div class="touch" id="touch">
+          <div class="dpad">
+            <button data-k="u" style="grid-column: 2" aria-label="Saltar">▲</button>
+            <button data-k="l" style="grid-column: 1; grid-row: 2" aria-label="Izquierda">◀</button>
+            <button data-k="d" style="grid-column: 2; grid-row: 2" aria-label="Agacharse">▼</button>
+            <button data-k="r" style="grid-column: 3; grid-row: 2" aria-label="Derecha">▶</button>
+          </div>
+          <div class="abtn">
+            <button data-k="p">PUÑO</button><button data-k="k">PAT.</button><button data-k="s">ESP.</button>
+          </div>
+        </div>
+        <div class="fight-bar">
+          <span class="hint" id="fightHint">Esc para pausar</span>
+          <div class="row">
+            <button id="touchBtn" class="ghost">Controles táctiles</button><button id="pauseBtn">Pausa</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ROSTER -->
+      <section id="scr-roster" class="screen" hidden>
+        <div class="row">
+          <h2>Luchadores</h2>
+          <span class="spacer"></span><button class="ghost" data-go="home">Volver</button>
+        </div>
+        <p class="note" id="rosterNote">
+          Sube una foto de frente y el juego la convierte en una cara de luchador estilo arcade.
+        </p>
+        <div class="cards" id="rosterCards"></div>
+      </section>
+
+      <!-- EDITOR -->
+      <section id="scr-editor" class="screen" hidden>
+        <div class="row">
+          <h2 id="edTitle">Nuevo luchador</h2>
+          <span class="spacer"></span><button class="ghost" data-go="roster">Cancelar</button>
+        </div>
+        <div class="editor">
+          <div class="panel" style="display: flex; flex-direction: column; gap: 12px">
+            <h3>1 · Foto de la cara</h3>
+            <div class="crop" id="cropBox">
+              <canvas id="crop" width="240" height="288"></canvas>
+              <div class="drop" id="dropHint">
+                <b style="font-family: var(--f-display); color: var(--sun); font-size: 16px">Sube una foto</b>Cara de
+                frente, bien iluminada. Arrástrala para centrarla en el óvalo.
+              </div>
+            </div>
+            <div class="row">
+              <label class="btn" for="faceFile" style="display: inline-block">Elegir foto…</label>
+              <input type="file" id="faceFile" accept="image/*" hidden />
+              <span class="spacer"></span
+              ><span class="muted" style="font-size: 12px">Arrastra la foto para encuadrar</span>
+            </div>
+            <label class="fld">Zoom<input type="range" id="zoom" min="0.3" max="4" step="0.01" value="1" /></label>
+            <div class="row">
+              <span class="muted" style="font-size: 12px; letter-spacing: 1px; text-transform: uppercase">Estilo</span>
+              <div class="seg" id="styleSeg">
+                <button data-s="comic" aria-pressed="true">Cómic</button
+                ><button data-s="pixel" aria-pressed="false">Pixel 16-bit</button
+                ><button data-s="orig" aria-pressed="false">Foto</button>
+              </div>
+            </div>
+          </div>
+          <div class="panel" style="display: flex; flex-direction: column; gap: 12px">
+            <h3>2 · Aspecto</h3>
+            <canvas class="preview" id="edPreview" width="340" height="340"></canvas>
+            <div class="row">
+              <label class="fld" style="flex: 1 1 150px"
+                >Nombre<input type="text" id="edName" maxlength="14" placeholder="Ej. El Rayo"
+              /></label>
+              <label class="fld" style="flex: 1 1 150px"
+                >Estilo de luchador<select id="edOutfit">
+                  <option value="gi">Kimono (karateka)</option>
+                  <option value="tank">Camiseta y cargo (soldado)</option>
+                  <option value="boxer">Boxeador</option>
+                  <option value="lucha">Luchador de ring</option>
+                  <option value="calle">Callejero (chaleco)</option>
+                  <option value="traje">Traje de combate</option>
+                  <option value="uniforme">Uniforme (comandante)</option>
+                </select></label
+              >
+              <label class="fld" style="flex: 1 1 130px"
+                >Complexión<select id="edBuild">
+                  <option value="normal">Atlético</option>
+                  <option value="heavy">Corpulento</option>
+                  <option value="slim">Ágil</option>
+                </select></label
+              >
+            </div>
+            <div class="colors">
+              <label class="fld"><input type="color" id="cGi" value="#e6e1f5" />Kimono</label>
+              <label class="fld"><input type="color" id="cGlove" value="#e8323a" />Cinta y guantes</label>
+              <label class="fld"><input type="color" id="cEnergy" value="#41e3ff" />Energía</label>
+              <label class="fld"><input type="color" id="cSkin" value="#e3a97f" />Piel</label>
+            </div>
+            <div class="row">
+              <label class="fld" style="flex: 1 1 200px"
+                >Apodo<input type="text" id="edNick" maxlength="28" placeholder="Ej. El Rey del Tardeo"
+              /></label>
+              <label class="fld" style="flex: 1 1 150px"
+                >Grito del especial<input
+                  type="text"
+                  id="edSpecial"
+                  maxlength="14"
+                  placeholder="Ej. ¡CAÑAZO!"
+                  style="text-transform: uppercase"
+              /></label>
+            </div>
+            <label class="fld"
+              >Frase de victoria<input
+                type="text"
+                id="edQuote"
+                maxlength="80"
+                placeholder="Ej. Otra ronda. La pagas tú."
+            /></label>
+            <div class="row">
+              <label class="fld" style="flex: 1 1 150px"
+                >Qué lanza<select id="edProj">
+                  <option value="energia">Bola de energía</option>
+                  <option value="chancla">Chancla</option>
+                  <option value="cana">Jarra de cerveza</option>
+                  <option value="balon">Balón</option>
+                  <option value="jamon">Jamón</option>
+                  <option value="movil">Móvil</option>
+                </select></label
+              >
+              <label class="fld" style="flex: 1 1 150px"
+                >Su escenario<select id="edStage">
+                  <option value="bar">Calle del Bar</option>
+                  <option value="playa">El Chiringuito</option>
+                  <option value="plaza">Plaza en Fiestas</option>
+                  <option value="azotea">La Azotea</option>
+                </select></label
+              >
+            </div>
+            <label class="row" style="gap: 8px; font-size: 14px"
+              ><input type="checkbox" id="edBand" checked /> Cinta en la frente</label
+            >
+            <p class="note err" id="edErr" hidden></p>
+            <div class="row end">
+              <button class="danger" id="edDelete" hidden>Borrar</button><span class="spacer"></span
+              ><button class="primary" id="edSave">Guardar luchador</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ONLINE -->
+      <section id="scr-online" class="screen" hidden>
+        <div class="row">
+          <h2>Online con amigos</h2>
+          <span class="spacer"></span><button class="ghost" id="onBack">Volver</button>
+        </div>
+        <div id="onUnavailable" class="note err" hidden>
+          El modo online solo funciona abriendo el juego en claude.ai con tu cuenta, y cuando el creador te ha invitado
+          al juego. Mientras tanto puedes jugar contra la CPU o a 2 jugadores en el mismo teclado.
+        </div>
+        <div id="onJoin" class="panel" style="display: flex; flex-direction: column; gap: 12px">
+          <p class="muted" style="margin: 0">
+            Crea una sala y pasa el código a un amigo. El primero que entra es el Jugador 1; el resto mira la pelea.
+          </p>
+          <div class="row">
+            <label class="fld" style="flex: 1 1 160px"
+              >Tu apodo<input type="text" id="nick" maxlength="14" placeholder="Ej. Pepe"
+            /></label>
+            <label class="fld" style="flex: 1 1 120px"
+              >Código de sala<input
+                type="text"
+                id="roomCode"
+                maxlength="6"
+                placeholder="ABCD"
+                style="text-transform: uppercase"
+            /></label>
+          </div>
+          <div class="row end">
+            <button id="newRoom">Sala nueva</button><button class="primary" id="joinRoom">Entrar</button>
+          </div>
+          <p class="note err" id="onErr" hidden></p>
+        </div>
+        <div id="onLobby" class="screen" hidden>
+          <div class="panel row">
+            <div>
+              <h3>Sala</h3>
+              <div class="code" id="lobbyCode">----</div>
+            </div>
+            <span class="spacer"></span><button id="copyCode">Copiar código</button
+            ><button class="danger" id="leaveRoom">Salir de la sala</button>
+          </div>
+          <div class="players" id="lobbyPlayers"></div>
+          <div class="panel" style="display: flex; flex-direction: column; gap: 10px">
+            <div class="row">
+              <h3 style="margin: 0">Tu luchador</h3>
+              <span class="spacer"></span><button class="primary" id="readyBtn">Estoy listo</button>
+            </div>
+            <div class="cards" id="lobbyCards"></div>
+            <p class="note" id="lobbyNote">Esperando a otro jugador…</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="js/01-constants.js"></script>
+    <script src="js/02-sound.js"></script>
+    <script src="js/03-faces.js"></script>
+    <script src="js/03b-stages.js"></script>
+    <script src="js/03c-scenes.js"></script>
+    <script src="js/03d-music.js"></script>
+    <script src="js/04-roster.js"></script>
+    <script src="js/05-fighter.js"></script>
+    <script src="js/06-match.js"></script>
+    <script src="js/07-drawing.js"></script>
+    <script src="js/08-input.js"></script>
+    <script src="js/09-ai.js"></script>
+    <script src="js/10-screens.js"></script>
+    <script src="js/11-loop.js"></script>
+    <script src="js/12-editor.js"></script>
+    <script src="js/13-storage.js"></script>
+    <script src="js/14-online.js"></script>
+    <script src="js/99-boot.js"></script>
+  </body>
+</html>
